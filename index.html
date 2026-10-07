@@ -159,9 +159,6 @@ h1 {
 .btn-ghost { border-color: var(--line); color: var(--ink); }
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-.try-link { font-size: 14.5px; }
-.try-link .arrow { font-family: ui-monospace, Menlo, Consolas, monospace; }
-
 /* ---------- code blocks ---------- */
 
 .code {
@@ -545,7 +542,6 @@ footer {
       <div class="cta-row">
         <a class="btn btn-primary" href="https://try.ucode-lang.org/pen/" target="_blank" rel="noopener">Try online</a>
         <a class="btn btn-ghost" href="https://github.com/ucode-lang/ucode">GitHub</a>
-        <a class="try-link" data-repl href="https://try.ucode-lang.org/">Try it in the browser <span class="arrow">↗</span></a>
       </div>
     </div>
 
@@ -554,7 +550,6 @@ footer {
         <span class="lang">terminal</span>
         <span class="tools">
           <a class="run" title="Run this example in the web REPL">run ▶</a>
-          <button type="button" class="copy" title="Copy to clipboard">copy</button>
         </span>
       </figcaption>
       <pre><code><span class="c"># preinstalled on OpenWrt 22.03 and later</span>
@@ -612,7 +607,6 @@ footer {
           <span class="lang">ucode</span>
           <span class="tools">
             <a class="run" title="Run this example in the web REPL">run ▶</a>
-            <button type="button" class="copy" title="Copy to clipboard">copy</button>
           </span>
         </figcaption>
         <pre><code><span class="kw">let</span> passwd = <span class="str">`
@@ -652,7 +646,6 @@ daemon      1  /usr/sbin  /usr/sbin/nologin</code></pre>
           <span class="lang">ucode</span>
           <span class="tools">
             <a class="run" title="Run this example in the web REPL">run ▶</a>
-            <button type="button" class="copy" title="Copy to clipboard">copy</button>
           </span>
         </figcaption>
         <pre><code><span class="kw">let</span> rule = { name: <span class="str">"allow-dhcp"</span>, proto: <span class="str">"udp"</span>, ports: [ 67, 68 ] };
@@ -684,7 +677,12 @@ printf(<span class="str">"%.4J\n"</span>, conf);</code></pre>
     <!-- templates -->
     <div class="panel" role="tabpanel" id="p-templates" aria-labelledby="t-templates" hidden>
       <figure class="code term" data-lang="console">
-        <figcaption class="codebar"><span class="lang">console</span></figcaption>
+        <figcaption class="codebar">
+          <span class="lang">console</span>
+          <span class="tools">
+            <a class="run-pen" href="https://try.ucode-lang.org/pen/#p=z1VcxBCoMwEEbhqww_CC2EYLop5CrGhdiRCHFSzNguQu5edNf1e3wVH3hnINPG8Ii5aCHl7Z0mZRgsa-ICP9S_wx4KgzmLsig83ONpe9tbRynPUzqfILWjJe90S6wUaRUaAvZ8KO8BhgLKd9U5Box3T10L4nrrLqNWitTaJbC8TuTsaGP7AQ" target="_blank" rel="noopener" title="Open as a ucodepen — the template renders automatically">run ▶</a>
+          </span>
+        </figcaption>
         <pre><code><span class="p">$</span> cat hosts.tpl
 127.0.0.1 localhost
 {% for (let h in ["router", "switch"]): %}
@@ -842,7 +840,7 @@ twice(21) = 42</code></pre>
       <a class="chip" href="https://ucode-lang.org/ucode/module-ffi.html">ffi</a>
       <a class="chip" href="https://ucode-lang.org/ucode/module-log.html">log</a>
       <a class="chip" href="https://ucode-lang.org/ucode/module-debug.html">debug</a>
-      <span class="chip" title="Reference documentation in progress">serial</span>
+      <a class="chip" href="https://ucode-lang.org/ucode/module-serial.html">serial</a>
     </div>
   </div>
 </section>
