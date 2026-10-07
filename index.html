@@ -521,7 +521,7 @@ footer {
     </a>
     <nav class="site-nav" aria-label="Main">
       <a href="https://ucode-lang.org/" class="hide-sm">Docs</a>
-      <a href="https://github.com/ucode-lang/manual" class="hide-sm">Manual</a>
+      <a href="https://ucode-lang.org/manual/" class="hide-sm">Manual</a>
       <a href="https://github.com/ucode-lang/ucode">GitHub</a>
       <a href="https://ucode-lang.org/" class="nav-cta">Get started</a>
     </nav>
@@ -545,7 +545,7 @@ footer {
       <div class="cta-row">
         <a class="btn btn-primary" href="https://ucode-lang.org/">Get started</a>
         <a class="btn btn-ghost" href="https://github.com/ucode-lang/ucode">GitHub</a>
-        <a class="try-link" data-repl href="https://ucode-lang.github.io/repl/">Try it in the browser <span class="arrow">↗</span></a>
+        <a class="try-link" data-repl href="https://try.ucode-lang.org/">Try it in the browser <span class="arrow">↗</span></a>
       </div>
     </div>
 
@@ -918,7 +918,7 @@ twice(21) = 42</code></pre>
         <h2>The manual</h2>
         <p><em>A comprehensive ucode programming manual</em> — covering the language, the
         standard library, the C embedding API and deployment in the wild.</p>
-        <a class="btn btn-primary" href="https://github.com/ucode-lang/manual">Read the manual</a>
+        <a class="btn btn-primary" href="https://ucode-lang.org/manual/">Read the manual</a>
       </div>
       <ul class="parts">
         <li><span class="rn">I</span>The language — values, operators, functions, templates</li>
@@ -973,7 +973,7 @@ make</pre>
     Jo-Philipp Wich with contributions from the OpenWrt community and beyond.</p>
     <nav class="links" aria-label="Footer">
       <a href="https://ucode-lang.org/">Docs</a>
-      <a href="https://github.com/ucode-lang/manual">Manual</a>
+      <a href="https://ucode-lang.org/manual/">Manual</a>
       <a href="https://github.com/ucode-lang">GitHub</a>
     </nav>
   </div>
@@ -989,13 +989,13 @@ make</pre>
    * The "run ▶" links open the WASM REPL with the example preloaded
    * and executed, via a #code= fragment (URI-encoded source).
    *
-   * The REPL is not published yet: flip REPL_LIVE to true once it is
-   * deployed, and adjust REPL_URL if its path changes. While REPL_LIVE
-   * is false the run links and the "Try it in the browser" link are
-   * removed and the page remains fully functional.
+   * The REPL lives at https://try.ucode-lang.org/. If it is ever taken
+   * down again, flip REPL_LIVE back to false and the run links and the
+   * "Try it in the browser" link are removed and the page remains fully
+   * functional.
    * ----------------------------------------------------------------- */
-  var REPL_LIVE = false;
-  var REPL_URL = "https://ucode-lang.github.io/repl/";
+  var REPL_LIVE = true;
+  var REPL_URL = "https://try.ucode-lang.org/";
 
   var figures = document.querySelectorAll("figure.code");
 
