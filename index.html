@@ -1,0 +1,1174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="ucode is a small scripting language for Linux systems: ECMAScript syntax, an embeddable C core, native JSON, built-in templates. Preinstalled on OpenWrt, ISC licensed.">
+<title>ucode — a small scripting language for Linux systems</title>
+<link rel="icon" type="image/svg+xml" href="assets/ucode-logo.svg">
+<link rel="icon" type="image/png" sizes="256x256" href="assets/ucode-logo.png">
+<style>
+:root {
+  --bg: #fbfbfa;
+  --ink: #1c2128;
+  --muted: #5a6470;
+  --line: #e2e5e9;
+  --panel: #f4f5f6;
+  --code-bg: #f6f8fa;
+  --accent: #0b6e99;
+  --accent-soft: rgba(11, 110, 153, 0.09);
+  --ok: #1a7f37;
+  --str: #14713d;
+  --term-bg: #0d1319;
+  --term-line: #1e2833;
+  --term-ink: #c9d4de;
+  --term-dim: #7d8b99;
+  --term-accent: #5fc2dd;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1117;
+    --ink: #d3dae2;
+    --muted: #8b95a1;
+    --line: #232c36;
+    --panel: #121820;
+    --code-bg: #10161d;
+    --accent: #58b6d0;
+    --accent-soft: rgba(88, 182, 208, 0.12);
+    --ok: #3fb950;
+    --str: #56b470;
+    --term-bg: #0a0f14;
+    --term-line: #1c2530;
+    --term-ink: #c9d4de;
+    --term-dim: #71808f;
+    --term-accent: #5fc2dd;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, pre, .mono {
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+/* ---------- header ---------- */
+
+.site-header {
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.site-header .wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 60px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.brand:hover { text-decoration: none; color: var(--accent); }
+.brand .logo-mark { color: var(--muted); flex-shrink: 0; }
+
+.site-nav { margin-left: auto; display: flex; gap: 22px; align-items: center; }
+.site-nav a { color: var(--muted); font-size: 14.5px; }
+.site-nav a:hover { color: var(--ink); text-decoration: none; }
+.site-nav a.nav-cta {
+  color: var(--accent);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+.site-nav a.nav-cta:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+/* ---------- hero ---------- */
+
+.hero { padding: 72px 0 56px; }
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: 56px;
+  align-items: center;
+}
+
+.kicker {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 14px;
+}
+
+h1 {
+  font-size: clamp(2.1rem, 4.4vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  font-weight: 750;
+  margin: 0 0 18px;
+}
+
+.lede {
+  font-size: 17.5px;
+  line-height: 1.65;
+  color: var(--muted);
+  margin: 0 0 28px;
+  max-width: 34em;
+}
+.lede strong { color: var(--ink); font-weight: 600; }
+
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+.btn {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.btn:hover { text-decoration: none; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { border-color: var(--line); color: var(--ink); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+.try-link { font-size: 14.5px; }
+.try-link .arrow { font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+/* ---------- code blocks ---------- */
+
+.code {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--code-bg);
+}
+
+.code + .code { margin-top: 10px; }
+
+.codebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.codebar .lang {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+
+.codebar .tools { margin-left: auto; display: flex; gap: 6px; }
+
+.codebar button {
+  font: 12px ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+.codebar button:hover { color: var(--accent); border-color: var(--accent); }
+.codebar button.ok { color: var(--ok); border-color: var(--ok); }
+
+.code pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13.2px;
+  line-height: 1.55;
+  tab-size: 4;
+}
+
+.code.out pre { color: var(--muted); }
+
+/* terminal variant: always dark */
+.code.term { background: var(--term-bg); border-color: var(--term-line); }
+.code.term .codebar { background: #10161d; border-color: var(--term-line); }
+.code.term .codebar .lang { color: var(--term-dim); }
+.code.term .codebar button { color: var(--term-dim); border-color: var(--term-line); }
+.code.term .codebar button:hover { color: var(--term-accent); border-color: var(--term-accent); }
+.code.term pre { color: var(--term-ink); }
+.code.term .p { color: var(--term-accent); }
+.code.term .c { color: var(--term-dim); }
+
+/* minimal hand-rolled highlighting */
+.kw { color: var(--accent); font-weight: 600; }
+.str { color: var(--str); }
+.cm { color: var(--muted); font-style: italic; }
+.term .cm { color: var(--term-dim); font-style: normal; }
+
+/* ---------- facts strip ---------- */
+
+.facts {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-top: 56px;
+}
+
+.facts .wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.fact {
+  padding: 18px 20px;
+  border-left: 1px solid var(--line);
+}
+.fact:first-child { border-left: 0; padding-left: 0; }
+
+.fact .n {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.fact .d { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+
+/* ---------- sections ---------- */
+
+section { padding: 64px 0 0; }
+
+.sec-head { margin-bottom: 28px; }
+.sec-head h2 {
+  font-size: 1.45rem;
+  letter-spacing: -0.015em;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.sec-head .sub { color: var(--muted); margin: 0; max-width: 46em; }
+
+/* ---------- tour tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tabs button {
+  font: 14px system-ui, sans-serif;
+  font-weight: 550;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 9px 14px;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.panel[hidden] { display: none; }
+
+.caption { font-size: 13.5px; color: var(--muted); margin: 12px 2px 0; max-width: 60em; }
+.caption code {
+  font-size: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* ---------- goals ---------- */
+
+.goals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 48px;
+}
+.goal {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+.goal h3 { font-size: 15.5px; margin: 0 0 6px; font-weight: 650; }
+.goal h3 .tag {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--accent);
+  margin-right: 8px;
+  font-weight: 600;
+}
+.goal p { margin: 0; font-size: 14.5px; color: var(--muted); line-height: 1.55; }
+
+/* ---------- modules ---------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 13px;
+  background: var(--code-bg);
+}
+a.chip:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+span.chip { color: var(--muted); cursor: help; }
+
+/* ---------- production ---------- */
+
+.prod { border-top: 1px solid var(--line); }
+.prod-row {
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 20px;
+  align-items: baseline;
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.prod-row .name { font-weight: 650; font-size: 15px; }
+.prod-row .what { color: var(--muted); font-size: 14.5px; }
+.prod-row .go { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; white-space: nowrap; }
+
+/* ---------- commit feed ---------- */
+
+.commit {
+  display: flex;
+  gap: 16px;
+  padding: 12px 2px;
+  border-top: 1px solid var(--line);
+  align-items: baseline;
+}
+.commit .when {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--accent);
+  white-space: nowrap;
+  min-width: 104px;
+  flex-shrink: 0;
+}
+.commit .msg { font-size: 14.5px; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.commit .msg a { color: inherit; }
+.commit .msg a:hover { color: var(--accent); }
+.commit .sha {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 10px;
+  white-space: nowrap;
+}
+.feed-fallback {
+  font-size: 14.5px;
+  color: var(--muted);
+  margin: 0;
+  padding: 12px 2px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- manual ---------- */
+
+.manual-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 30px 32px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 40px;
+  align-items: center;
+}
+.manual-card h2 { margin: 0 0 10px; font-size: 1.45rem; letter-spacing: -0.015em; }
+.manual-card p { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+.parts { list-style: none; margin: 0; padding: 0; }
+.parts li {
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14.5px;
+}
+.parts li:first-child { border-top: 0; }
+.parts .rn {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  color: var(--accent);
+  font-size: 12.5px;
+  min-width: 26px;
+  padding-top: 2px;
+}
+
+/* ---------- install ---------- */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.install {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--code-bg);
+}
+.install h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+.install pre {
+  margin: 0;
+  padding: 13px 14px;
+  font-size: 12.6px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+.install .note { font-size: 12.5px; color: var(--muted); padding: 0 14px 12px; margin: 0; }
+
+/* ---------- footer ---------- */
+
+footer {
+  margin-top: 80px;
+  border-top: 1px solid var(--line);
+  padding: 28px 0 40px;
+}
+.foot {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+.foot .fine { color: var(--muted); font-size: 13.5px; max-width: 44em; }
+.foot .links { margin-left: auto; display: flex; gap: 18px; font-size: 13.5px; }
+.foot .links a { color: var(--muted); }
+.foot .links a:hover { color: var(--accent); }
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 920px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+  .facts .wrap { grid-template-columns: 1fr 1fr; }
+  .fact:nth-child(3) { border-left: 0; padding-left: 0; }
+  .fact { padding: 14px 16px; }
+  .goals { grid-template-columns: 1fr; }
+  .manual-card { grid-template-columns: 1fr; gap: 20px; }
+  .install-grid { grid-template-columns: 1fr; }
+  .prod-row { grid-template-columns: 1fr; gap: 4px; }
+  .prod-row .go { display: none; }
+}
+
+@media (max-width: 560px) {
+  .site-nav { gap: 14px; }
+  .site-nav a.hide-sm { display: none; }
+  .facts .wrap { grid-template-columns: 1fr; }
+  .fact { border-left: 0; padding-left: 0; }
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <svg class="logo-mark" viewBox="0 0 120 120" width="26" height="26" fill="none"
+           stroke-width="8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path stroke="currentColor" d="M34 20c-12 0-12 4-12 14v16q0 10-10 10 10 1 10 10v16c0 10 0 14 12 14m52-80c12 0 12 4 12 14v16q1 10 10 10-9 1-10 10v16c0 10 0 14-12 14"/>
+        <path stroke="#58b6d0" d="M47 31v58m0-34q1 16 14 16t14-16V31m0 24v10q0 6 6 6"/>
+      </svg>
+      <span>ucode</span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="https://ucode-lang.org/" class="hide-sm">Docs</a>
+      <a href="https://github.com/ucode-lang/manual" class="hide-sm">Manual</a>
+      <a href="https://github.com/ucode-lang/ucode">GitHub</a>
+      <a href="https://ucode-lang.org/" class="nav-cta">Get started</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============================ hero ============================ -->
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker">The ucode language</p>
+      <h1>A small scripting language for Linux&nbsp;systems.</h1>
+      <p class="lede">
+        ECMAScript syntax, an embeddable C core, JSON as a native datatype, and a
+        template engine built into the interpreter. Synchronous and dependency-light —
+        <strong>OpenWrt's firewall and web interface are written in it</strong>.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://ucode-lang.org/">Get started</a>
+        <a class="btn btn-ghost" href="https://github.com/ucode-lang/ucode">GitHub</a>
+        <a class="try-link" data-repl href="https://ucode-lang.github.io/repl/">Try it in the browser <span class="arrow">↗</span></a>
+      </div>
+    </div>
+
+    <figure class="code term" data-lang="terminal" data-run-src='printf("%J\n", { hello: "world", nums: [ 1, 2, 3 ] });'>
+      <figcaption class="codebar">
+        <span class="lang">terminal</span>
+        <span class="tools">
+          <a class="run" title="Run this example in the web REPL">run ▶</a>
+          <button type="button" class="copy" title="Copy to clipboard">copy</button>
+        </span>
+      </figcaption>
+      <pre><code><span class="c"># preinstalled on OpenWrt 22.03 and later</span>
+<span class="p">$</span> ucode -e 'printf(<span class="str">"%J\n"</span>, { hello: <span class="str">"world"</span>, nums: [ 1, 2, 3 ] })'
+{ "hello": "world", "nums": [ 1, 2, 3 ] }</code></pre>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================ facts ============================ -->
+
+<div class="facts">
+  <div class="wrap">
+    <div class="fact">
+      <div class="n">~64&nbsp;KB</div>
+      <div class="d">interpreter and runtime on ARM Cortex&nbsp;A9</div>
+    </div>
+    <div class="fact">
+      <div class="n">64-bit</div>
+      <div class="d">integers with a guaranteed range, distinct from doubles</div>
+    </div>
+    <div class="fact">
+      <div class="n">json-c</div>
+      <div class="d">the only hard dependency — everything else is optional</div>
+    </div>
+    <div class="fact">
+      <div class="n">ISC</div>
+      <div class="d">permissive two-clause license, whole tree</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ tour ============================ -->
+
+<section id="tour">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>A quick tour</h2>
+      <p class="sub">Four things ucode does well<span data-repl> — the examples marked
+      <em>run&nbsp;▶</em> execute in your browser on a WebAssembly build of the interpreter,
+      same VM, no server</span>.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Code examples">
+      <button role="tab" aria-selected="true" aria-controls="p-script" id="t-script">Scripting</button>
+      <button role="tab" aria-selected="false" aria-controls="p-json" id="t-json">JSON</button>
+      <button role="tab" aria-selected="false" aria-controls="p-templates" id="t-templates">Templates</button>
+      <button role="tab" aria-selected="false" aria-controls="p-embedding" id="t-embedding">Embedding</button>
+    </div>
+
+    <!-- scripting -->
+    <div class="panel" role="tabpanel" id="p-script" aria-labelledby="t-script">
+      <figure class="code" data-lang="ucode">
+        <figcaption class="codebar">
+          <span class="lang">ucode</span>
+          <span class="tools">
+            <a class="run" title="Run this example in the web REPL">run ▶</a>
+            <button type="button" class="copy" title="Copy to clipboard">copy</button>
+          </span>
+        </figcaption>
+        <pre><code><span class="kw">let</span> passwd = <span class="str">`
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+`</span>;
+
+<span class="kw">let</span> users = map(
+    filter(split(trim(passwd), <span class="str">"\n"</span>), (l) =&gt; length(l) &gt; 0),
+    (l) =&gt; {
+        <span class="kw">let</span> f = split(l, <span class="str">":"</span>);
+
+        <span class="kw">return</span> { name: f[0], uid: int(f[2]), home: f[5], shell: f[6] };
+    }
+);
+
+printf(<span class="str">"%-8s %4s  %-10s %s\n"</span>, <span class="str">"NAME"</span>, <span class="str">"UID"</span>, <span class="str">"HOME"</span>, <span class="str">"SHELL"</span>);
+
+<span class="kw">for</span> (<span class="kw">let</span> u <span class="kw">in</span> users)
+    printf(<span class="str">"%-8s %4d  %-10s %s\n"</span>, u.name, u.uid, u.home, u.shell);</code></pre>
+      </figure>
+      <figure class="code out" data-lang="output">
+        <figcaption class="codebar"><span class="lang">output</span></figcaption>
+        <pre><code>NAME      UID  HOME       SHELL
+root        0  /root      /bin/bash
+daemon      1  /usr/sbin  /usr/sbin/nologin</code></pre>
+      </figure>
+      <p class="caption">The core builtins carry Perl's vocabulary — <code>map</code>, <code>filter</code>,
+      <code>split</code>, <code>printf</code> — and everything above is core: no imports, no classes,
+      no wrapper objects.</p>
+    </div>
+
+    <!-- json -->
+    <div class="panel" role="tabpanel" id="p-json" aria-labelledby="t-json" hidden>
+      <figure class="code" data-lang="ucode">
+        <figcaption class="codebar">
+          <span class="lang">ucode</span>
+          <span class="tools">
+            <a class="run" title="Run this example in the web REPL">run ▶</a>
+            <button type="button" class="copy" title="Copy to clipboard">copy</button>
+          </span>
+        </figcaption>
+        <pre><code><span class="kw">let</span> rule = { name: <span class="str">"allow-dhcp"</span>, proto: <span class="str">"udp"</span>, ports: [ 67, 68 ] };
+
+<span class="cm">/* any value serialises with one format specifier... */</span>
+printf(<span class="str">"%J\n"</span>, rule);
+
+<span class="cm">/* ...and JSON text parses back with the json() builtin */</span>
+<span class="kw">let</span> conf = json(<span class="str">'{ "log": 64, "zones": [ "lan", "wan" ] }'</span>);
+
+printf(<span class="str">"%.4J\n"</span>, conf);</code></pre>
+      </figure>
+      <figure class="code out" data-lang="output">
+        <figcaption class="codebar"><span class="lang">output</span></figcaption>
+        <pre><code>{ "name": "allow-dhcp", "proto": "udp", "ports": [ 67, 68 ] }
+{
+    "log": 64,
+    "zones": [
+        "lan",
+        "wan"
+    ]
+}</code></pre>
+      </figure>
+      <p class="caption">Values are JSON-shaped, so <code>json()</code> parses and <code>%J</code>
+      serialises — one specifier, anywhere a format string works. Precision pretty-prints
+      (<code>%.4J</code>), empty precision indents with tabs (<code>%.J</code>).</p>
+    </div>
+
+    <!-- templates -->
+    <div class="panel" role="tabpanel" id="p-templates" aria-labelledby="t-templates" hidden>
+      <figure class="code term" data-lang="console">
+        <figcaption class="codebar"><span class="lang">console</span></figcaption>
+        <pre><code><span class="p">$</span> cat hosts.tpl
+127.0.0.1 localhost
+{% for (let h in ["router", "switch"]): %}
+10.1.0.1 {{ h }}
+{% endfor %}
+
+<span class="p">$</span> utpl -T hosts.tpl
+127.0.0.1 localhost
+10.1.0.1 router
+10.1.0.1 switch</code></pre>
+      </figure>
+      <p class="caption">Template mode is part of the interpreter, not a library: expression and
+      statement tags embedded in plain text, with whitespace control. This is what renders
+      OpenWrt's nftables firewall ruleset.</p>
+    </div>
+
+    <!-- embedding -->
+    <div class="panel" role="tabpanel" id="p-embedding" aria-labelledby="t-embedding" hidden>
+      <figure class="code" data-lang="c">
+        <figcaption class="codebar">
+          <span class="lang">c — host.c</span>
+          <span class="tools">
+            <button type="button" class="copy" title="Copy to clipboard">copy</button>
+          </span>
+        </figcaption>
+        <pre><code><span class="cm">#include &lt;ucode/compiler.h&gt;
+#include &lt;ucode/lib.h&gt;
+#include &lt;ucode/vm.h&gt;</span>
+
+<span class="kw">static</span> uc_value_t *
+twice(uc_vm_t *vm, size_t nargs)
+{
+    <span class="kw">return</span> ucv_int64_new(2 * ucv_int64_get(uc_fn_arg(0)));
+}
+
+<span class="kw">int</span> main(<span class="kw">int</span> argc, <span class="kw">char</span> **argv)
+{
+    uc_parse_config_t config = { .raw_mode = <span class="kw">true</span> };
+    <span class="kw">char</span> *error = NULL;
+
+    uc_source_t *src = uc_source_new_file(argv[1]);
+    uc_program_t *prog = uc_compile(&amp;config, src, &amp;error);
+
+    uc_source_put(src);
+
+    uc_vm_t vm = { 0 };
+    uc_vm_init(&amp;vm, &amp;config);
+    uc_stdlib_load(uc_vm_scope_get(&amp;vm));
+
+    <span class="cm">/* expose a native function to the script */</span>
+    ucv_object_add(uc_vm_scope_get(&amp;vm), <span class="str">"twice"</span>,
+                   ucv_cfunction_new(<span class="str">"twice"</span>, twice));
+
+    uc_vm_execute(&amp;vm, prog, NULL);
+
+    uc_program_put(prog);
+    uc_vm_free(&amp;vm);
+
+    <span class="kw">return</span> 0;
+}</code></pre>
+      </figure>
+      <figure class="code term" data-lang="console">
+        <figcaption class="codebar"><span class="lang">console</span></figcaption>
+        <pre><code><span class="p">$</span> cc -O2 host.c -o host -lucode
+<span class="p">$</span> cat hello.uc
+printf(<span class="str">"twice(21) = %d\n"</span>, twice(21));
+<span class="p">$</span> ./host hello.uc
+twice(21) = 42</code></pre>
+      </figure>
+      <p class="caption">libucode links into any C program: compile, load the standard library,
+      register native functions, run. The same VM powers <code>rpcd</code> and <code>uhttpd</code>;
+      the C API covers values, exceptions, resource types and precompiled bytecode.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ goals ============================ -->
+
+<section id="design">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Design goals</h2>
+      <p class="sub">ucode began as the template processor for OpenWrt's nftables firewall and grew
+      into a general system scripting language. The goals it was designed around still hold.</p>
+    </div>
+    <div class="goals">
+      <div class="goal">
+        <h3><span class="tag">syntax</span>ECMAScript, minus the machinery</h3>
+        <p>let, const, arrow functions, template literals, try/catch — familiar ground for
+        JavaScript-experienced developers, and existing editor tooling keeps working.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">data</span>JSON as a native datatype</h3>
+        <p>Values are JSON-shaped — null, boolean, integer, double, string, array, object — so
+        ubus calls, config files and HTTP payloads need no glue code.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">numbers</span>Real 64-bit integers</h3>
+        <p>Distinct integer and double types with a guaranteed 64-bit integer range. No surprises
+        when ids, timestamps and byte counts show up.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">stdlib</span>Perl-flavoured builtins</h3>
+        <p>substr, index, splice, sprintf, split, join, trim — the core functions are functions,
+        not methods on wrapper objects. 74 of them in the core alone.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">regex</span>POSIX regular expressions</h3>
+        <p>match, replace and wildcard are built in, compiled by the host libc's ERE engine —
+        patterns behave like the rest of the system does.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">flow</span>Synchronous by design</h3>
+        <p>One flow of control. Concurrency, when needed, lives in the uloop event loop module —
+        not in the language, not in your head.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">embed</span>A C library first</h3>
+        <p>libucode is a library before it is a program: a documented C API for values, VM state,
+        native functions, resource types and precompiled bytecode.</p>
+      </div>
+      <div class="goal">
+        <h3><span class="tag">modules</span>Loadable native modules</h3>
+        <p>Each extension builds as an optional shared object, probed at configure time — the
+        feature set is a build-time choice, not a runtime tax.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ modules ============================ -->
+
+<section id="modules">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>The standard library</h2>
+      <p class="sub">Loadable native modules — link against what you need, skip the rest.
+      Each links into the reference documentation.</p>
+    </div>
+    <div class="chips">
+      <a class="chip" href="https://ucode-lang.org/module-core.html">core</a>
+      <a class="chip" href="https://ucode-lang.org/module-fs.html">fs</a>
+      <a class="chip" href="https://ucode-lang.org/module-io.html">io</a>
+      <a class="chip" href="https://ucode-lang.org/module-math.html">math</a>
+      <a class="chip" href="https://ucode-lang.org/module-struct.html">struct</a>
+      <a class="chip" href="https://ucode-lang.org/module-socket.html">socket</a>
+      <a class="chip" href="https://ucode-lang.org/module-resolv.html">resolv</a>
+      <a class="chip" href="https://ucode-lang.org/module-uloop.html">uloop</a>
+      <a class="chip" href="https://ucode-lang.org/module-ubus.html">ubus</a>
+      <a class="chip" href="https://ucode-lang.org/module-uci.html">uci</a>
+      <a class="chip" href="https://ucode-lang.org/module-rtnl.html">rtnl</a>
+      <a class="chip" href="https://ucode-lang.org/module-nl80211.html">nl80211</a>
+      <a class="chip" href="https://ucode-lang.org/module-zlib.html">zlib</a>
+      <a class="chip" href="https://ucode-lang.org/module-digest.html">digest</a>
+      <a class="chip" href="https://ucode-lang.org/module-ffi.html">ffi</a>
+      <a class="chip" href="https://ucode-lang.org/module-log.html">log</a>
+      <a class="chip" href="https://ucode-lang.org/module-debug.html">debug</a>
+      <span class="chip" title="Reference documentation in progress">serial</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ production ============================ -->
+
+<section id="production">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>In production</h2>
+      <p class="sub">ucode ships preinstalled with OpenWrt 22.03 and later. These projects run on it
+      or embed it.</p>
+    </div>
+    <div class="prod">
+      <div class="prod-row">
+        <span class="name">firewall4</span>
+        <span class="what">OpenWrt's nftables firewall — the project ucode was written for, rendering
+        the ruleset from UCI configuration and templates.</span>
+        <a class="go" href="https://github.com/openwrt/firewall4">openwrt/firewall4 ↗</a>
+      </div>
+      <div class="prod-row">
+        <span class="name">LuCI</span>
+        <span class="what">The OpenWrt web interface — ucode templates and the luci runtime behind
+        every page.</span>
+        <a class="go" href="https://github.com/openwrt/luci">openwrt/luci ↗</a>
+      </div>
+      <div class="prod-row">
+        <span class="name">rpcd</span>
+        <span class="what">The ubus RPC daemon, embedding the interpreter to publish ubus objects
+        from scripts.</span>
+        <a class="go" href="https://github.com/openwrt/rpcd">openwrt/rpcd ↗</a>
+      </div>
+      <div class="prod-row">
+        <span class="name">uhttpd</span>
+        <span class="what">The tiny OpenWrt web server — ucode is a first-class request backend.</span>
+        <a class="go" href="https://github.com/openwrt/uhttpd">openwrt/uhttpd ↗</a>
+      </div>
+      <div class="prod-row">
+        <span class="name">uwsd</span>
+        <span class="what">A next-generation web server with asynchronous ucode handlers on an event
+        loop.</span>
+        <a class="go" href="https://github.com/jow-/uwsd">jow-/uwsd ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ commit feed ============================ -->
+
+<section id="commits">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Latest commits</h2>
+      <p class="sub">Live from the ucode-lang/ucode repository — recent work on master,
+      no changelog to go stale.</p>
+    </div>
+    <div class="commits" id="commit-feed">
+      <noscript>
+        <p class="feed-fallback">The live feed needs JavaScript —
+        <a href="https://github.com/ucode-lang/ucode/commits">browse the commit log</a> instead.</p>
+      </noscript>
+    </div>
+    <p class="caption"><a href="https://github.com/ucode-lang/ucode/commits">Full commit history ↗</a></p>
+  </div>
+</section>
+
+<!-- ============================ manual ============================ -->
+
+<section id="manual">
+  <div class="wrap">
+    <div class="manual-card">
+      <div>
+        <h2>The manual</h2>
+        <p><em>A comprehensive ucode programming manual</em> — covering the language, the
+        standard library, the C embedding API and deployment in the wild.</p>
+        <a class="btn btn-primary" href="https://github.com/ucode-lang/manual">Read the manual</a>
+      </div>
+      <ul class="parts">
+        <li><span class="rn">I</span>The language — values, operators, functions, templates</li>
+        <li><span class="rn">II</span>The standard library — core builtins and every module</li>
+        <li><span class="rn">III</span>Networking &amp; system integration — sockets, netlink, ubus</li>
+        <li><span class="rn">IV</span>Embedding ucode in C — the API, walked line by line</li>
+        <li><span class="rn">V</span>Deployment &amp; ecosystem — uhttpd, rpcd, firewall4, LuCI</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ install ============================ -->
+
+<section id="install">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Getting it</h2>
+    </div>
+    <div class="install-grid">
+      <div class="install">
+        <h3>OpenWrt</h3>
+        <pre>opkg install ucode</pre>
+        <p class="note">Preinstalled on OpenWrt 22.03 and later.</p>
+      </div>
+      <div class="install">
+        <h3>Debian</h3>
+        <pre>apt-get install build-essential devscripts \
+    debhelper libjson-c-dev cmake pkg-config
+git clone https://github.com/ucode-lang/ucode.git
+cd ucode &amp;&amp; dpkg-buildpackage -b -us -uc</pre>
+        <p class="note">Packaging recipes ship in-tree.</p>
+      </div>
+      <div class="install">
+        <h3>From source</h3>
+        <pre>git clone https://github.com/ucode-lang/ucode.git
+cd ucode
+cmake -DUBUS_SUPPORT=OFF -DUCI_SUPPORT=OFF \
+      -DULOOP_SUPPORT=OFF .
+make</pre>
+        <p class="note">json-c is the only hard dependency; OpenWrt-specific modules toggle off.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <p class="fine">ucode is released under the ISC license, written and maintained by
+    Jo-Philipp Wich with contributions from the OpenWrt community and beyond.</p>
+    <nav class="links" aria-label="Footer">
+      <a href="https://ucode-lang.org/">Docs</a>
+      <a href="https://github.com/ucode-lang/manual">Manual</a>
+      <a href="https://github.com/ucode-lang">GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* -----------------------------------------------------------------
+   * Web REPL deep links.
+   *
+   * The "run ▶" links open the WASM REPL with the example preloaded
+   * and executed, via a #code= fragment (URI-encoded source).
+   *
+   * The REPL is not published yet: flip REPL_LIVE to true once it is
+   * deployed, and adjust REPL_URL if its path changes. While REPL_LIVE
+   * is false the run links and the "Try it in the browser" link are
+   * removed and the page remains fully functional.
+   * ----------------------------------------------------------------- */
+  var REPL_LIVE = false;
+  var REPL_URL = "https://ucode-lang.github.io/repl/";
+
+  var figures = document.querySelectorAll("figure.code");
+
+  function sourceOf(fig) {
+    var explicit = fig.getAttribute("data-run-src");
+
+    if (explicit)
+      return explicit;
+
+    var code = fig.querySelector("code");
+
+    return code ? code.textContent : "";
+  }
+
+  function replHref(fig) {
+    return REPL_URL + "#code=" + encodeURIComponent(sourceOf(fig));
+  }
+
+  /* Copy buttons */
+  figures.forEach(function (fig) {
+    var btn = fig.querySelector(".codebar .copy");
+    var code = fig.querySelector("code");
+
+    if (!btn || !code)
+      return;
+
+    btn.addEventListener("click", function () {
+      var done = function () {
+        btn.classList.add("ok");
+        btn.textContent = "copied";
+        setTimeout(function () {
+          btn.classList.remove("ok");
+          btn.textContent = "copy";
+        }, 1400);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText)
+        navigator.clipboard.writeText(code.textContent).then(done, done);
+      else
+        done();
+    });
+  });
+
+  /* Run links (only when the REPL is deployed) */
+  figures.forEach(function (fig) {
+    var run = fig.querySelector(".codebar a.run");
+
+    if (!run)
+      return;
+
+    if (REPL_LIVE) {
+      run.href = replHref(fig);
+      run.target = "_blank";
+      run.rel = "noopener";
+    } else {
+      run.remove();
+    }
+  });
+
+  if (!REPL_LIVE)
+    document.querySelectorAll("[data-repl]").forEach(function (el) {
+      el.remove();
+    });
+
+  /* Tabs */
+  var tabs = document.querySelectorAll(".tabs [role=tab]");
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) {
+        t.setAttribute("aria-selected", t === tab ? "true" : "false");
+        document.getElementById(t.getAttribute("aria-controls")).hidden = t !== tab;
+      });
+    });
+  });
+
+  /* Latest commits: a small client-side feed from the GitHub API.
+   * Falls back to a plain link when the API is unreachable or
+   * rate-limited (60 requests per hour and IP, unauthenticated). */
+  var feed = document.getElementById("commit-feed");
+
+  if (feed) {
+    var API = "https://api.github.com/repos/ucode-lang/ucode/commits?per_page=12";
+    var LOG = "https://github.com/ucode-lang/ucode/commits";
+
+    var since = function (iso) {
+      var s = (Date.now() - new Date(iso).getTime()) / 1000;
+
+      function unit(div, name) {
+        var n = Math.max(1, Math.floor(s / div));
+
+        return n + " " + name + (n === 1 ? "" : "s") + " ago";
+      }
+
+      if (s < 3600)        return "just now";
+      if (s < 86400)       return unit(3600, "hour");
+      if (s < 86400 * 30)  return unit(86400, "day");
+      if (s < 86400 * 365) return unit(86400 * 30, "month");
+
+      return unit(86400 * 365, "year");
+    };
+
+    var fallback = function () {
+      feed.textContent = "";
+
+      var p = document.createElement("p");
+
+      p.className = "feed-fallback";
+      p.append("The live feed is unavailable right now — ");
+
+      var a = document.createElement("a");
+
+      a.href = LOG;
+      a.textContent = "browse the commit log on GitHub";
+      p.append(a, ".");
+      feed.append(p);
+    };
+
+    fetch(API, { headers: { Accept: "application/vnd.github+json" } })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+
+        return r.json();
+      })
+      .then(function (list) {
+        if (!Array.isArray(list) || !list.length)
+          throw new Error("empty");
+
+        /* skip merge commits — branch names, not substance */
+        var commits = list.filter(function (c) {
+          return !/^Merge /.test((c.commit && c.commit.message) || "");
+        });
+
+        if (!commits.length)
+          commits = list;
+
+        feed.textContent = "";
+
+        commits.slice(0, 6).forEach(function (c) {
+          var row = document.createElement("div");
+
+          row.className = "commit";
+
+          var when = document.createElement("span");
+
+          when.className = "when";
+          when.textContent = since(c.commit && c.commit.author && c.commit.author.date);
+
+          var msg = document.createElement("span");
+
+          msg.className = "msg";
+
+          var a = document.createElement("a");
+
+          a.href = c.html_url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = ((c.commit && c.commit.message) || "").split("\n")[0];
+
+          var sha = document.createElement("span");
+
+          sha.className = "sha";
+          sha.textContent = (c.sha || "").slice(0, 7);
+
+          msg.append(a, sha);
+          row.append(when, msg);
+          feed.append(row);
+        });
+      })
+      .catch(fallback);
+  }
+})();
+</script>
+
+</body>
+</html>
